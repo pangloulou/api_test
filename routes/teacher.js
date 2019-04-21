@@ -231,7 +231,7 @@ router.post('/add_point', redirectLogin, (req, res) => {
 
 //为知识点创建一个题目
 router.post('/add_question', redirectLogin, (req, res) => {
-    const { question } = req.body;
+    const question  = req.body;
     // var question = {
     //     k_id: 6,
     //     q_info: '问题2',

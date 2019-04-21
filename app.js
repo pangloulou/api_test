@@ -13,9 +13,13 @@ const commonRouter = require('./routes/common');
 db.authenticate()
     .then(() => console.log('database connected...'))
     .catch(err => console.log('error:' + err));
-    
+
+
+//创建json解析
+app.use(bodyParser.json())
+//创建application/x-www-form-urlencoded解析
 app.use(bodyParser.urlencoded({
-    extended: true
+    extended: false
 }));
     
 app.get('/', (req, res) => {

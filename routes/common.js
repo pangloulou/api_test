@@ -104,7 +104,7 @@ router.get('/sign_out', (req, res) => {
     req.session.destroy(() => {
        res.clearCookie('userId', {});
        res.json({
-           'status': 'success'
+           success: true
        });
    });
 });
