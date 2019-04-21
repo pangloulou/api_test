@@ -106,7 +106,7 @@ router.post('/sign_in', (req, res) => {
 });
 
 //查看用户名是否可以注册
-router.get('/set_name', (req, res) => {
+router.post('/set_name', (req, res) => {
     const { name } = req.body;
     // var name = 's_test';
     Student.findOne({
