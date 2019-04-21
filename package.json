@@ -1,0 +1,22 @@
+{
+  "name": "again",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon start app.js",
+    "start": "node start app.js"
+  },
+  "author": "pangloulou",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "express-session": "^1.16.0",
+    "mysql2": "^1.6.5",
+    "sequelize": "^5.2.13"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.11"
+  }
+}
