@@ -35,6 +35,6 @@ app.use('/student', studentRouter);
 app.use('/teacher', tearcherRouer);
 app.use('/api', commonRouter);
 
-app.listen(8001, () => {
+app.listen(8006, () => {
     console.log('site started at port 8001');
 });
