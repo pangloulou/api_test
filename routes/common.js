@@ -109,5 +109,39 @@ router.get('/sign_out', (req, res) => {
    });
 });
 
+//获取每个知识点的题目信息
+router.post('/get_point', redirectLogin, (req, res) => {
+    const { userId } = req.session;
+    const { pointId } = req.body;
+    Point.findOne({
+        where: {
+            k_id: pointId
+        },
+        include: [{
+            model: Question,
+            as: 'Questions',
+            include: [{
+                model: Option,
+                as: 'Options',
+                attributes: {
+                    exclude: ['q_id']
+                }
+            }]
+        }]
+    }).then(p => {
+        res.json({
+            success: true,
+            pointDetail: p.get({
+                plain: true
+            })
+        })
+    }).catch(err => {
+        console.log(err);
+        res.json({
+            success: false,
+            err_message: '参数错误'
+        })
+    });
+});
 
 module.exports = router;

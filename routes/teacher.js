@@ -232,21 +232,7 @@ router.post('/add_point', redirectLogin, (req, res) => {
 //为知识点创建一个题目
 router.post('/add_question', redirectLogin, (req, res) => {
     const question  = req.body;
-    // var question = {
-    //     k_id: 6,
-    //     q_info: '问题2',
-    //     q_answer: '解析2',
-    //     options: [{
-    //         o_info: '选项1'
-    //     },{
-    //         o_info: '选项2',
-    //         o_status: 1
-    //     },{
-    //         o_info: '选项3'
-    //     },{
-    //         o_info: '选项4'
-    //     }]
-    // };
+    
     Question.create({
         q_info: question.q_info,
         q_answer: question.q_answer,
@@ -302,38 +288,7 @@ router.get('/get_courses', redirectLogin, (req, res) => {
     })
 });
 
-//获取每个知识点的题目信息
-router.post('/get_point', redirectLogin, (req, res) => {
-    const { userId } = req.session;
-    const { pointId } = req.body;
-    // var pointId = 6;
-    Point.findOne({
-        where: {
-            k_id: pointId
-        },
-        include: [{
-            model: Question,
-            as: 'Questions',
-            include: [{
-                model: Option,
-                as: 'Options'
-            }]
-        }]
-    }).then(p => {
-        res.json({
-            success: true,
-            pointDetail: p.get({
-                plain: true
-            })
-        })
-    }).catch(err => {
-        console.log(err);
-        res.json({
-            success: false,
-            err_message: '参数错误'
-        })
-    });
-});
+
 
 //修改题目
 router.post('/update_question', redirectLogin, (req, res) => {
@@ -371,10 +326,9 @@ router.post('/delete_course', redirectLogin, (req, res) => {
 //以下是教师和学生之间的接口
 
 //查看选择课程的学生列表
-router.get('/get_student', redirectLogin, (req, res) => {
+router.post('/get_student', redirectLogin, (req, res) => {
     const { userId } = req.session;
     const { courseId } = req.body;
-    // var courseId = 8;
     Course.findOne({
         where: {
             c_id: courseId
@@ -395,6 +349,7 @@ router.get('/get_student', redirectLogin, (req, res) => {
             })
         })
     }).catch(err => {
+        console.log(err);
         res.json({
             success: false,
             err_message: err
@@ -404,7 +359,7 @@ router.get('/get_student', redirectLogin, (req, res) => {
 
 
 //查看该学生对该课程的答题情况
-router.get('/student_answer', redirectLogin, (req, res) => {
+router.post('/student_answer', redirectLogin, (req, res) => {
     const { studentId, courseId } = req.body;
     const { userId } = req.session;
     // var studentId = 6;

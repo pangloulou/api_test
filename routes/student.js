@@ -9,6 +9,10 @@ const student_course = require('../models/index').student_course;
 const Course = require('../models/index').Course;
 const answer_info = require('../models/index').answer_info;
 const Tag = require('../models/index').Tag;
+const Option = require('../models/index').Option;
+const Question = require('../models/index').Question;
+
+
 
 const redirectLogin = (req, res, next) => {
     if(!req.session.userId) {
@@ -177,32 +181,6 @@ router.get('/profile', redirectLogin, (req, res) => {
     })
 });
 
-
-//学生获取系统所有课程列表
-router.get('/all_courses', redirectLogin, (req, res) => {
-    Course.findAndCountAll({
-        order: [['c_id', 'DESC']],
-        include: [{
-            model: Teacher,
-            attributes: ['t_name']
-        },{
-            model: Student,
-            as: 'follow_list',
-            attributes: ['s_id'],
-            through: {
-                attributes: []
-            }
-        }]
-    }).then(c_list => {
-        res.json(c_list);
-    }).catch(err => {
-        console.log(err);
-        res.json({
-            success: false
-        })
-    })
-});
-
 //学生选课
 router.post('/select_course', redirectLogin, (req, res) => {
     const { courseId } = req.body;
@@ -268,15 +246,11 @@ router.get('/course_list', redirectLogin, (req, res) => {
 });
 
 //学生答题
-router.get('/answer_question', redirectLogin, (req, res) => {
+router.post('/answer_question', redirectLogin, (req, res) => {
     const { userId } = req.session;
-    const { questionId, answerTime, answerDate, answerOption} = req.body;
-    // var answerInfo = {
-    //     questionId: 1,
-    //     answerTime: 60000,
-    //     answerDate: new Date(),
-    //     answerOption: '选项1'
-    // };
+    const answerInfo = req.body;
+    console.log(answerInfo);
+   
     answer_info.create({
         q_id: answerInfo.questionId,
         a_time: answerInfo.answerTime,
@@ -285,23 +259,24 @@ router.get('/answer_question', redirectLogin, (req, res) => {
         s_id: userId
     }).then(a => {
         res.json({
-            success: true,
-            s_answer: a.get({
-                plain: true
-            })
+            success: true
         })
     }).catch(err => {
+        console.log(err);
         res.json({
             success: false,
-            err_message: err
+            err_message: '参数错误'
         })
     })
 });
 
+
+//答题完成返回题目解析 与题目是否正确
+
 //学生给题贴标签
 router.post('/add_tag', redirectLogin, (req, res) => {
     const { userId } = req.session;
-    const { tagData } = req.body;
+    const  tagData  = req.body;
     // var tagData = {
     //     questionId: 1,
     //     tagInfo: '太简单了',
