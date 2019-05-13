@@ -214,10 +214,10 @@ router.get('/page_course/:pageId', (req, res) => {
     })
 })
 
-//获取每门课的详细信息，包括知识点和题目
+//获取每门课的详细信息，包括知识点和题目的详细信息
 router.post('/get_full_course', redirectLogin, (req, res) => {
     const { courseId } = req.body;
-    // var courseId = 7;
+    // const courseId = 1;
     Course.findOne({
         where: {
             c_id: courseId
@@ -238,11 +238,10 @@ router.post('/get_full_course', redirectLogin, (req, res) => {
             attributes: ['t_id','t_name','t_desc']
         }]
     }).then(c => {
+        let result = JSON.parse(JSON.stringify(c).replace(/Points|Questions|Options/g, 'children'));//JSON字符串
         res.json({
             success: true,
-            full_course: c.get({
-                plain: true
-            })
+            full_course: result
         })
     }).catch(err => {
         console.log(err);
@@ -252,9 +251,6 @@ router.post('/get_full_course', redirectLogin, (req, res) => {
         })
     })
 });
-
-
-
 
 
 //登出

@@ -25,94 +25,10 @@ const redirectLogin = (req, res, next) => {
     }
 };
 
-//学生注册
-router.post('/sign_up', (req, res) => {
-    const { name, password } = req.body;
-    // var name = 's_test';
-    // var password = 123;
-    
-    if(name && password) {
-        Student.findOrCreate({
-            where: {
-                s_name: name
-            },
-            defaults: {
-                pwd: password,
-                join_time: new Date()
-            }
-        }).spread((s, created) => {
-            if(created) {
-                res.json({
-                    success: true
-                });
-            } else {
-                res.json({
-                    success: false,
-                    err_message: '账号已注册'
-                });
-            }
-        }).catch(err => {
-            console.log(err);
-            res.json({
-                success: false
-            });
-        });
-    } else {
-        res.json({
-            success: false,
-            err_message: '参数错误'
-        })
-    }
-});
-
-//学生登录
-router.post('/sign_in', (req, res) => {
-    const { name, password } = req.body;
-    const { userId } = req.session;
-    // var name = 's_test';
-    // var password = 123; 
-
-    if(userId) {
-        res.json({
-            success: false,
-            message: '不能重复登录'
-        })
-    } else {
-        Student.findOne({
-            where: {
-                s_name: name,
-                pwd: password
-            }
-        }).then(s => {
-            if(s) {
-                req.session.userId = s.s_id;
-                res.json({
-                    success: true,
-                    user: {
-                        id: s.s_id,
-                        name: s.s_name
-                    }
-                });
-            } else {
-                res.json({
-                    success: false,
-                    err_message: '信息填写错误'
-                });
-            }
-        }).catch(err => {
-            console.log(err);
-            res.json({
-                success: false,
-                err_message: '参数错误'
-            });
-        });
-    }
-});
 
 //查看用户名是否可以注册
 router.post('/set_name', (req, res) => {
     const { name } = req.body;
-    // var name = 's_test';
     Student.findOne({
         where: {
             s_name: name
@@ -256,19 +172,6 @@ router.post('/answer_question', redirectLogin, (req, res) => {
         a_option: answerInfo.answerOption,//选项ID
         s_id: userId
     }).then(a => {
-        // Question.findOne({
-        //     where: {
-        //         q_id: answerInfo.questionId
-        //     },
-        //     attributes: ['q_answer'],
-        //     include: [{
-        //         model: Option,
-        //         as: 'Options',
-        //         where: {
-        //             o_status: 1
-        //         }
-        //     }]
-        // })
         Option.findOne({
             where: {
                 o_id: answerInfo.answerOption
@@ -296,7 +199,6 @@ router.post('/answer_question', redirectLogin, (req, res) => {
 });
 
 
-//答题完成返回题目解析 与题目是否正确
 
 //学生给题贴标签
 router.post('/add_tag', redirectLogin, (req, res) => {
@@ -325,6 +227,25 @@ router.post('/add_tag', redirectLogin, (req, res) => {
     })
 });
 
+//返回该学生所有的答题信息
+router.get('/answer_logs', redirectLogin, (req, res) => {
+    const { userId } = req.session;
+    Student.findOne({
+        where: {
+            s_id: userId
+        },
+        include: [{
+            model: answer_info,
+            as: 'answer_log'
+        }]
+    }).then(s => {
+        res.json(s.get({plain: true}))
+    }).catch(err => {
+        res.json({
+            err_message: 'error'
+        })
+    })
+});
 
 
 module.exports = router;

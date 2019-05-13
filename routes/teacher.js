@@ -21,90 +21,6 @@ const redirectLogin = (req, res, next) => {
     }
 };
 
-
-//教师注册
-router.post('/sign_up', (req, res) => {
-    const { name, password } = req.body;
-    // var name = 't_test';
-    // var password = 123;
-
-    if(name && password) {
-        Teacher.findOrCreate({
-            where: {
-                t_name: name
-            },
-            defaults: {
-                pwd: password,
-                join_time: new Date()
-            }
-        }).spread((t, created) => {
-            if(created) {
-                res.json({
-                    success: true
-                });
-            } else {
-                res.json({
-                    success: false,
-                    err_message: '账号已注册'
-                });
-            }
-        }).catch(err => {
-            console.log(err);
-            res.json({
-                success: false
-            });
-        });
-    } else {
-        res.json({
-            success: false,
-            err_message: '参数错误'
-        })
-    } 
-});
-
-//教师登录
-router.post('/sign_in', (req, res) => {
-    const { name, password } = req.body;
-    const { userId } = req.session;
-    // var name = 't_test';
-    // var password = 123;
-    if(userId) {
-        res.json({
-            success: false,
-            message: '不能重复登录'
-        })
-    } else {
-        Teacher.findOne({
-            where: {
-                t_name: name,
-                pwd: password
-            }
-        }).then(t => {
-            if(t) {
-                req.session.userId = t.t_id;
-                res.json({
-                    success: true,
-                    user: {
-                        id: t.t_id,
-                        name: t.t_name
-                    }
-                });
-            } else {
-                res.json({
-                    success: false,
-                    err_message: '还未注册'
-                });
-            }
-        }).catch(err => {
-            console.log(err);
-            res.json({
-                success: false,
-                err_message: '参数错误'
-            });
-        });
-    }
-});
-
 //查看用户名是否可以注册
 router.post('/set_name', (req, res) => {
     const { name } = req.body;
@@ -231,8 +147,7 @@ router.post('/add_point', redirectLogin, (req, res) => {
 
 //为知识点创建一个题目
 router.post('/add_question', redirectLogin, (req, res) => {
-    const question  = req.body;
-    
+    const question  = req.body; 
     Question.create({
         q_info: question.q_info,
         q_answer: question.q_answer,
@@ -257,9 +172,10 @@ router.post('/add_question', redirectLogin, (req, res) => {
 });
 
 
-//获取老师创建的课程列表 包含知识点信息
+//获取老师创建的课程列表 包含知识点和题目信息
 router.get('/get_courses', redirectLogin, (req, res) => {
     const { userId } = req.session;
+    // const userId = 1;
     Teacher.findOne({
         where: {
             t_id: userId
@@ -270,15 +186,18 @@ router.get('/get_courses', redirectLogin, (req, res) => {
             as: 'course_list',
             include: [{
                 model: Point,
-                as: 'Points'
+                as: 'Points',
+                include: [{
+                    model: Question,
+                    as: 'Questions'
+                }]
             }]
         }]
     }).then(t => {
+        let result = JSON.parse(JSON.stringify(t).replace(/Points|Questions/g, 'children'));//JSON字符串
         res.json({
             success: true,
-            courseList: t.get({
-                plain: true
-            })
+            courseList: result
         });
     }).catch(err => {
         res.json({
@@ -289,46 +208,9 @@ router.get('/get_courses', redirectLogin, (req, res) => {
 });
 
 
-
-//修改题目
-router.post('/update_question', redirectLogin, (req, res) => {
-   
-});
-
-//修改知识点
-router.post('/update_point', redirectLogin, (req, res) => {
-    
-});
-//修改选项
-router.post('/update_option', redirectLogin, (req, res) => {
-
-});
-
-//删除选项
-router.post('/delete_option', redirectLogin, (req, res) => {
-
-});
-
-//删除知识点
-router.post('/delete_point', redirectLogin, (req, res) => {
-
-});
-
-//删除课程
-router.post('/delete_course', redirectLogin, (req, res) => {
-    //无人选课可以删除，有人选择不可删除
-   
-});
-
-
-//上面是教师和课程之间的接口
-
-//以下是教师和学生之间的接口
-
 //查看选择课程的学生列表
 router.get(('/get_student'), redirectLogin, (req, res) => {
     const { userId } = req.session;
-    // const userId = 1;
     Teacher.findOne({
         where: {
             t_id: userId
@@ -380,12 +262,13 @@ router.get(('/get_student'), redirectLogin, (req, res) => {
 });
 
 
+
 //查看该学生对该课程的答题情况
-router.get('/student_answer', (req, res) => {
-    // const { studentId, courseId } = req.body;
-    // const { userId } = req.session;
-    var studentId = 1;
-    var courseId = 1;
+router.get('/student_answer', redirectLogin, (req, res) => {
+    const { studentId, courseId } = req.body;
+    const { userId } = req.session;
+    // var studentId = 1;
+    // var courseId = 1;
     Course.findOne({
         where: {
             c_id: courseId
@@ -431,17 +314,5 @@ router.get('/student_answer', (req, res) => {
 });
 
 
-
-//查看学生对该课程的答题情况，课程->知识点->题目->选项->是否正确
-// router.post('/answer_',  redirectLogin, (req, res) => {
-//     const { studentId, courseId } = req.body;
-//     const { userId } = req.session;
-//     Student.findOne({
-//         where: {
-//             s_id: studentId
-//         },
-//         include:
-//     })
-// })
 
 module.exports = router;
