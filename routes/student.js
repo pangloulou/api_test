@@ -185,7 +185,7 @@ router.post('/answer_question', redirectLogin, (req, res) => {
             } else if(o.o_status == 0) {
                 res.json({
                     success: true,
-                    status: false
+                    status: false//答案错误
                 })
             }
         })

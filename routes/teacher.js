@@ -194,10 +194,11 @@ router.get('/get_courses', redirectLogin, (req, res) => {
             }]
         }]
     }).then(t => {
-        let result = JSON.parse(JSON.stringify(t).replace(/Points|Questions/g, 'children'));//JSON字符串
+        let result = JSON.stringify(t).replace(/Points|Questions/g, 'children');//JSON字符串
+        let result2 = JSON.parse(result.replace(/c_name|k_info|q_info|o_info/g, 'info'));
         res.json({
             success: true,
-            courseList: result
+            courseList: result2
         });
     }).catch(err => {
         res.json({
@@ -260,7 +261,6 @@ router.get(('/get_student'), redirectLogin, (req, res) => {
     })
    
 });
-
 
 
 //查看该学生对该课程的答题情况
