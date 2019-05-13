@@ -326,90 +326,122 @@ router.post('/delete_course', redirectLogin, (req, res) => {
 //以下是教师和学生之间的接口
 
 //查看选择课程的学生列表
-router.post('/get_student', redirectLogin, (req, res) => {
+router.get(('/get_student'), redirectLogin, (req, res) => {
     const { userId } = req.session;
-    const { courseId } = req.body;
-    Course.findOne({
+    // const userId = 1;
+    Teacher.findOne({
         where: {
-            c_id: courseId
+            t_id: userId
         },
+        attributes: ['t_id','t_name','t_desc'],
         include: [{
-            model: Student,
-            as: 'follow_list',
-            attributes: ['s_id', 's_name', 'join_time'],
-            through: {
-                attributes: []
-            }
+            model: Course,
+            as: 'course_list',
+            include: [{
+                model: Student,
+                as: 'follow_list',
+                attributes: ['s_id','s_name'],
+                through: {
+                    attributes: ['select_time']
+                }
+            }]
         }]
-    }).then(c => {
+    }).then(t => {        
+        var courseList = t.get({plain: true}).course_list;
+        const studentList = [];
+        
+        for(let i = 0; i < courseList.length; i++) {
+            // console.log(i,courseList[i]);
+            for(let j = 0; j < courseList[i].follow_list.length; j++) {
+                // console.log(j,courseList[i].follow_list[j])
+                studentList.push({
+                    c_id: courseList[i].c_id,
+                    c_name: courseList[i].c_name,
+                    c_desc: courseList[i].c_desc,
+                    creator: courseList[i].creator,
+                    s_id: courseList[i].follow_list[j].s_id,
+                    s_name: courseList[i].follow_list[j].s_name,
+                    select_time: courseList[i].follow_list[j].student_course.select_time
+                })
+            }
+        }
+        console.log(studentList)
         res.json({
             success: true,
-            course: c.get({
-                plain: true
-            })
+            studentList: studentList
         })
     }).catch(err => {
         console.log(err);
         res.json({
-            success: false,
-            err_message: err
-        });
-    });
+            success: false
+        })
+    })
+   
 });
 
 
 //查看该学生对该课程的答题情况
-router.post('/student_answer', redirectLogin, (req, res) => {
-    const { studentId, courseId } = req.body;
-    const { userId } = req.session;
-    // var studentId = 6;
-    // var courseId = 7;
-    Student.findOne({
+router.get('/student_answer', (req, res) => {
+    // const { studentId, courseId } = req.body;
+    // const { userId } = req.session;
+    var studentId = 1;
+    var courseId = 1;
+    Course.findOne({
         where: {
-            s_id: studentId
+            c_id: courseId
         },
-        attributes: ['s_id', 's_name'],
-        include: [{
-            model: Question,
-            as: 'answered_questions',
-            through: {
-                attributes: []
+        include:[{
+            model: Student,
+            as: 'follow_list',
+            where: {
+                s_id: studentId
             },
+            attributes: ['s_id', 's_name'],
+            required: true
+        }, {
+            model: Point,
+            as: 'Points',
             include: [{
-                model: Point,
-                attributes: [],
+                model: Question,
+                as: 'Questions',
                 include: [{
-                    model: Course,
-                    where: {
-                        c_id: courseId
-                    },
+                    model: answer_info,
+                    as: 'answered_info',
                     required: true
+                },{
+                    model: Option,
+                    as: 'Options'
+                }, {
+                    model: Tag,
+                    as: 'Tags'
                 }],
                 required: true
-            }, {
-                model: Option,
-                as: 'Options'
-            },{
-                model: Tag,
-                as: 'Tags'
-            },{
-                model: answer_info,
-                as: 'answered_info',
-                attributes: ['a_time', 'a_date', 'a_option']
             }]
         }]
-    }).then(r => {
-        res.json({
-            success: true,
-            answered_detail: r
-        });
+    }).then(c => {
+        //处理数据
+     
+        res.json(c);
     }).catch(err => {
-        console.log(err)
+        console.log(err);
         res.json({
-            success: false,
-            err_message: err
+            success: false
         })
     })
 });
+
+
+
+//查看学生对该课程的答题情况，课程->知识点->题目->选项->是否正确
+// router.post('/answer_',  redirectLogin, (req, res) => {
+//     const { studentId, courseId } = req.body;
+//     const { userId } = req.session;
+//     Student.findOne({
+//         where: {
+//             s_id: studentId
+//         },
+//         include:
+//     })
+// })
 
 module.exports = router;

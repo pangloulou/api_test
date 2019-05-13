@@ -96,7 +96,7 @@ router.post('/sign_in', (req, res) => {
             } else {
                 res.json({
                     success: false,
-                    err_message: '还未注册'
+                    err_message: '信息填写错误'
                 });
             }
         }).catch(err => {
@@ -248,18 +248,43 @@ router.get('/course_list', redirectLogin, (req, res) => {
 //学生答题
 router.post('/answer_question', redirectLogin, (req, res) => {
     const { userId } = req.session;
-    const answerInfo = req.body;
-    console.log(answerInfo);
-   
+    const answerInfo = req.body;   
     answer_info.create({
-        q_id: answerInfo.questionId,
+        q_id: answerInfo.questionId,//题目ID
         a_time: answerInfo.answerTime,
         a_date: answerInfo.answerDate,
-        a_option: answerInfo.answerOption,
+        a_option: answerInfo.answerOption,//选项ID
         s_id: userId
     }).then(a => {
-        res.json({
-            success: true
+        // Question.findOne({
+        //     where: {
+        //         q_id: answerInfo.questionId
+        //     },
+        //     attributes: ['q_answer'],
+        //     include: [{
+        //         model: Option,
+        //         as: 'Options',
+        //         where: {
+        //             o_status: 1
+        //         }
+        //     }]
+        // })
+        Option.findOne({
+            where: {
+                o_id: answerInfo.answerOption
+            }
+        }).then(o => {
+            if(o.o_status == 1) {
+                res.json({
+                    success: true,
+                    status: true //答案正确
+                })
+            } else if(o.o_status == 0) {
+                res.json({
+                    success: true,
+                    status: false
+                })
+            }
         })
     }).catch(err => {
         console.log(err);

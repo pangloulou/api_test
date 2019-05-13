@@ -93,7 +93,9 @@ Question.hasMany(answer_info, {
     foreignKey: 'q_id'
 })
 //答题信息-题目：1-1
-
+answer_info.belongsTo(Question, {
+    foreignKey: 'q_id'
+})
 //
 //题目-标签：1-m
 Question.hasMany(Tag, {
@@ -124,5 +126,8 @@ Question.belongsToMany(Student, {
     foreignKey: 'q_id',
     otherKey: 's_id'
 });
+
+//课程-答题信息 1-m
+
 
 module.exports = models;

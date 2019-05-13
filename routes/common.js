@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+const Student = require('../models/index').Student;
 const Teacher = require('../models/index').Teacher;
 const Course = require('../models/index').Course;
 const Point = require('../models/index').Point;
@@ -18,10 +19,164 @@ const redirectLogin = (req, res, next) => {
     }
 };
 
+
+//注册
+router.post('/sign_up', (req, res) => {
+    const { name, password, role} = req.body;
+    //role = 1 表示学生 
+    //role = 2 表示老师
+    
+    if(name && password && role) {
+        if(role == 1) {
+            //学生注册
+            Student.findOrCreate({
+                where: {
+                    s_name: name
+                },
+                defaults: {
+                    pwd: password,
+                    join_time: new Date()
+                }
+            }).spread((s, created) => {
+                if(created) {
+                    res.json({
+                        success: true
+                    });
+                } else {
+                    res.json({
+                        success: false,
+                        err_message: '账号已注册'
+                    });
+                }
+            }).catch(err => {
+                console.log(err);
+                res.json({
+                    success: false
+                });
+            });
+        } else if (role == 2) {
+            //教师注册
+            Teacher.findOrCreate({
+                where: {
+                    t_name: name
+                },
+                defaults: {
+                    pwd: password,
+                    join_time: new Date()
+                }
+            }).spread((t, created) => {
+                if(created) {
+                    res.json({
+                        success: true
+                    });
+                } else {
+                    res.json({
+                        success: false,
+                        err_message: '账号已注册'
+                    });
+                }
+            }).catch(err => {
+                console.log(err);
+                res.json({
+                    success: false
+                });
+            });
+        } else {
+            res.json({
+                success: false,
+                err_message: '参数错误'
+            })
+        }   
+    } else {
+        res.json({
+            success: false,
+            err_message: '参数错误'
+        })
+    }
+});
+
+
+//登录
+router.post('/sign_in', (req, res) => {
+    const { name, password, role } = req.body;
+    const { userId } = req.session;
+   
+    if(userId) {
+        res.json({
+            success: false,
+            message: '不能重复登录'
+        })
+    } else {
+        //学生登录
+        if(role == 1) {
+            Student.findOne({
+                where: {
+                    s_name: name,
+                    pwd: password
+                }
+            }).then(s => {
+                if(s) {
+                    req.session.userId = s.s_id;
+                    req.session.role = 1;//学生
+                    res.json({
+                        success: true,
+                        user: {
+                            id: s.s_id,
+                            name: s.s_name
+                        }
+                    });
+                } else {
+                    res.json({
+                        success: false,
+                        err_message: '信息填写错误'
+                    });
+                }
+            }).catch(err => {
+                console.log(err);
+                res.json({
+                    success: false,
+                    err_message: '参数错误'
+                });
+            });
+        } else if(role == 2) {
+            Teacher.findOne({
+                where: {
+                    t_name: name,
+                    pwd: password
+                }
+            }).then(t => {
+                if(t) {
+                    req.session.userId = t.t_id;
+                    req.session.role = 2; //教师
+                    res.json({
+                        success: true,
+                        user: {
+                            id: t.t_id,
+                            name: t.t_name
+                        }
+                    });
+                } else {
+                    res.json({
+                        success: false,
+                        err_message: '还未注册'
+                    });
+                }
+            }).catch(err => {
+                console.log(err);
+                res.json({
+                    success: false,
+                    err_message: '参数错误'
+                });
+            });
+        }
+    }
+});
+
+
+
 //获取系统里面前10个课程
 router.get('/get_first_ten', (req, res) => {
     Course.findAndCountAll({
-        // offset: 10, //跳过实例条数
         limit: 10//限制返回结果条数
     }).then(c => {
         res.json({
@@ -97,6 +252,10 @@ router.post('/get_full_course', redirectLogin, (req, res) => {
         })
     })
 });
+
+
+
+
 
 //登出
 router.get('/sign_out', (req, res) => {

@@ -33,8 +33,8 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     a_option: {
-      type: DataTypes.STRING(255),
-      allowNull: true
+      type: DataTypes.INTEGER(4),
+      allowNull: false
     }
   }, {
     tableName: 'answer_info'
