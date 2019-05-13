@@ -37,7 +37,7 @@ app.use(session({
 
 app.use('/student', studentRouter);
 app.use('/teacher', tearcherRouer);
-app.use('/api', commonRouter);
+app.use('/common', commonRouter);
 
 app.listen(8006, () => {
     console.log('site started at port 8006');

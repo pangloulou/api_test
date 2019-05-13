@@ -128,7 +128,7 @@ router.post('/sign_in', (req, res) => {
                 } else {
                     res.json({
                         success: false,
-                        err_message: '信息填写错误'
+                        err_message: '用户名或密码填写错误'
                     });
                 }
             }).catch(err => {
@@ -158,7 +158,7 @@ router.post('/sign_in', (req, res) => {
                 } else {
                     res.json({
                         success: false,
-                        err_message: '还未注册'
+                        err_message: '用户名或密码填写错误'
                     });
                 }
             }).catch(err => {
