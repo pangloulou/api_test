@@ -103,7 +103,7 @@ router.post('/sign_in', (req, res) => {
    
     if(userId) {
         res.json({
-            success: false,
+            success: true,
             message: '不能重复登录'
         })
     } else {
