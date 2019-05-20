@@ -188,12 +188,16 @@ router.get('/get_courses', redirectLogin, (req, res) => {
                 as: 'Points',
                 include: [{
                     model: Question,
-                    as: 'Questions'
+                    as: 'Questions',
+                    include: [{
+                        model: Option,
+                        as: 'Options'
+                    }]
                 }]
             }]
         }]
     }).then(t => {
-        let result = JSON.stringify(t).replace(/Points|Questions/g, 'children');//JSON字符串
+        let result = JSON.stringify(t).replace(/Points|Questions|Options/g, 'children');//JSON字符串
         let result2 = JSON.parse(result.replace(/c_name|k_info|q_info|o_info/g, 'info'));
         res.json({
             success: true,
