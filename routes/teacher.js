@@ -251,7 +251,7 @@ router.get(('/get_student'), redirectLogin, (req, res) => {
                 })
             }
         }
-        console.log(studentList)
+        // console.log(studentList)
         res.json({
             success: true,
             studentList: studentList
@@ -266,56 +266,108 @@ router.get(('/get_student'), redirectLogin, (req, res) => {
 });
 
 
-//查看该学生对该课程的答题情况
-router.get('/student_answer', redirectLogin, (req, res) => {
-    const { studentId, courseId } = req.body;
+//查看老师名下所有学生答题情况 老师->课程->学生->答题
+//课程名、学生名、答题耗时、答题日期、选课时间、题目描述、选项详情、学生选项
+router.get('/student_logs', redirectLogin,(req, res) => {
     const { userId } = req.session;
-    // var studentId = 1;
-    // var courseId = 1;
-    Course.findOne({
+    // const userId = 1;
+    Teacher.findOne({
         where: {
-            c_id: courseId
+            t_id: userId
         },
-        include:[{
-            model: Student,
-            as: 'follow_list',
-            where: {
-                s_id: studentId
-            },
-            attributes: ['s_id', 's_name'],
-            required: true
-        }, {
-            model: Point,
-            as: 'Points',
+        include: [{
+            model: Course,
+            as: 'course_list',
             include: [{
-                model: Question,
-                as: 'Questions',
+                model: Student,
+                as: 'follow_list',
                 include: [{
                     model: answer_info,
-                    as: 'answered_info',
-                    required: true
-                },{
-                    model: Option,
-                    as: 'Options'
-                }, {
-                    model: Tag,
-                    as: 'Tags'
+                    as: 'answer_log',
+                    required: true,
+                    include: [{
+                        model: Question,
+                        include: [{
+                            model: Option,
+                            as: 'Options'       
+                        }]
+                    }]
                 }],
                 required: true
             }]
         }]
-    }).then(c => {
-        //处理数据
-     
-        res.json(c);
+    }).then(t=> {
+        let data = t.get({plain: true}).course_list;
+        let result = [];
+        for(let i = 0; i < data.length; i++) {
+            let log = {
+                t_name: t.t_name,
+                c_name: data[i].c_name
+            }
+            for(let j = 0; j < data[i].follow_list.length; j++) {
+                log.s_name = data[i].follow_list[j].s_name;
+                log.select_time = data[i].follow_list[j].student_course.select_time;
+                for(let k = 0; k < data[i].follow_list[j].answer_log.length;k++) {
+                    log.a_time = data[i].follow_list[j].answer_log[k].a_time;
+                    log.a_date = data[i].follow_list[j].answer_log[k].a_date;
+                    log.a_option = data[i].follow_list[j].answer_log[k].a_option;
+                    log.q_info = data[i].follow_list[j].answer_log[k].question.q_info;
+                    log.options = data[i].follow_list[j].answer_log[k].question.Options;  
+                }
+            }
+            result.push(log);
+        }
+        res.json({
+            success: true,
+            student_logs: result
+        });
     }).catch(err => {
-        console.log(err);
         res.json({
             success: false
         })
     })
+  
 });
 
+//查看题目标签
+router.post('/question_tags', (req, res) => {
+    // const { userId } = req.session;
+    const { questionId } = req.body;
+   
+    Question.findOne({
+        where: {
+            q_id: questionId
+        },
+        attributes: [],
+        include: [{
+            model: Tag,
+            as: 'Tags',
+            include: [{
+                model: Student
+            }]
+        }]
+    }).then(q => {
+        let data = q.get({plain: true}).Tags;
+        let result = [];
+        for(let i= 0; i < data.length; i++) {
+            let tag = {
+                t_info: data[i].t_info,
+                t_data: data[i].t_data,
+                s_name: data[i].student.s_name
+            };
+            result.push(tag);
+        }
+        res.json({
+            success: true,
+            tags: result
+        });
+    }).catch(err => {
+        res.json({
+            success: false,
+            err_message: '参数错误'
+        })
+    })
 
+})
 
 module.exports = router;

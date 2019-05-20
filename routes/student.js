@@ -11,6 +11,7 @@ const answer_info = require('../models/index').answer_info;
 const Tag = require('../models/index').Tag;
 const Option = require('../models/index').Option;
 const Question = require('../models/index').Question;
+const Point = require('../models/index').Point;
 
 
 
@@ -161,33 +162,43 @@ router.get('/course_list', redirectLogin, (req, res) => {
     })
 });
 
-//学生答题
-router.post('/answer_question', redirectLogin, (req, res) => {
+//学生答题 返回答题结果（包括你的选项是否正确 以及正确选项是什么）
+router.post('/answer_question', redirectLogin,(req, res) => {
     const { userId } = req.session;
-    const answerInfo = req.body;   
+    // const userId = 17;
+    const answerInfo = req.body;  
+    console.log(answerInfo);
     answer_info.create({
         q_id: answerInfo.questionId,//题目ID
-        a_time: answerInfo.answerTime,
-        a_date: answerInfo.answerDate,
+        a_time: answerInfo.answerTime,//答题耗时 单位毫秒
+        a_date: answerInfo.answerDate,//答题日期
         a_option: answerInfo.answerOption,//选项ID
-        s_id: userId
+        s_id: userId//学生编号
     }).then(a => {
-        Option.findOne({
+        Question.findOne({
             where: {
-                o_id: answerInfo.answerOption
-            }
-        }).then(o => {
-            if(o.o_status == 1) {
-                res.json({
-                    success: true,
-                    status: true //答案正确
-                })
-            } else if(o.o_status == 0) {
-                res.json({
-                    success: true,
-                    status: false//答案错误
-                })
-            }
+                q_id: answerInfo.questionId
+            },
+            include: [{
+                model: Option,
+                as: 'Options',
+                where: {
+                    o_status: 1
+                }
+            }]
+        }).then(q => {
+            let result = q.get({plain: true});
+            // result.studentOption = a.a_option;
+            res.json({
+                success: true,
+                rightOption: result.Options[0],
+                studentOption: a.a_option
+            });
+        }).catch(err => {
+            console.log(err);
+            res.json({
+                success: false
+            });
         })
     }).catch(err => {
         console.log(err);
@@ -197,8 +208,6 @@ router.post('/answer_question', redirectLogin, (req, res) => {
         })
     })
 });
-
-
 
 //学生给题贴标签
 router.post('/add_tag', redirectLogin, (req, res) => {
@@ -222,25 +231,74 @@ router.post('/add_tag', redirectLogin, (req, res) => {
     })
 });
 
-//返回该学生所有的答题信息
-//选了哪些课，做了哪些题，做题情况如何
-//课程名
+//查看问题解析
+router.post('/get_answer', (req, res) => {
+    const questionId = req.body.questionId;
+    Question.findOne({
+        where: {
+            q_id: questionId
+        }
+    }).then(q =>{
+        res.json({
+            success: true,
+            q_answer: q.q_answer
+        })
+    }).catch(err => {
+        res.json({
+            success: false,
+            err_message: '参数错误'
+        })
+    })
+});
+
+//返回该学生所有的答题信息 课程名称、教师名、题目编号、答题用时、答题日期、答题选项
 router.get('/answer_logs', redirectLogin, (req, res) => {
-    // const { userId } = req.session;
-    const userId = 1;
-    Student.findOne({
+    const { userId } = req.session;
+    // const userId = 17;
+    answer_info.findAll({
         where: {
             s_id: userId
         },
         include: [{
-            model: answer_info,
-            as: 'answer_log'
+            model: Question,
+            include: [{
+                model: Option,
+                as: 'Options'       
+            },{
+                model: Point,
+                include: [{
+                    model: Course,
+                    include: [{
+                        model: Teacher
+                    }]
+                }]
+            }]
         }]
-    }).then(s => {
-        res.json(s.get({plain: true}))
-    }).catch(err => {
+    }).then(a => {
+        let data = JSON.parse(JSON.stringify(a));
+        let result = [];
+        for(let i = 0; i < data.length; i++) {
+            console.log(data[i].a_id);
+            let log = {
+                a_id:data[i].a_id,
+                a_time: data[i].a_time,
+                a_date: data[i].a_date,
+                q_info: data[i].question.q_info,
+                a_option: data[i].a_option,
+                options:data[i].question.Options,
+                c_name: data[i].question.knowledge_point.course.c_name,
+                t_name: data[i].question.knowledge_point.course.teacher.t_name,
+            }
+            result.push(log);
+        }
         res.json({
-            err_message: 'error'
+            success: true,
+            logs: result
+        });
+    }).catch(err => {
+        console.log(err);
+        res.json({
+            success: false
         })
     })
 });

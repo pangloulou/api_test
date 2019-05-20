@@ -78,6 +78,7 @@ Option.belongsTo(Question, {
     foreignKey: 'q_id'
 });
 
+
 //学生-答题信息：1-m
 Student.hasMany(answer_info, {
     as: 'answer_log',
