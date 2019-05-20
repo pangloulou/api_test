@@ -24,7 +24,6 @@ const redirectLogin = (req, res, next) => {
 //查看用户名是否可以注册
 router.post('/set_name', (req, res) => {
     const { name } = req.body;
-    // var name = 't_test';
     Teacher.findOne({
         where: {
             t_name: name

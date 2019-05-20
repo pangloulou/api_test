@@ -7,6 +7,7 @@ const Course = require('../models/index').Course;
 const Point = require('../models/index').Point;
 const Question = require('../models/index').Question;
 const Option = require('../models/index').Option;
+const sequelize = require('sequelize');
 
 const redirectLogin = (req, res, next) => {
     if(!req.session.userId) {
@@ -95,7 +96,6 @@ router.post('/sign_up', (req, res) => {
     }
 });
 
-
 //登录
 router.post('/sign_in', (req, res) => {
     const { name, password, role } = req.body;
@@ -172,7 +172,16 @@ router.post('/sign_in', (req, res) => {
     }
 });
 
-
+//登出
+router.get('/sign_out', (req, res) => {
+    //删除session
+    req.session.destroy(() => {
+       res.clearCookie('userId', {});
+       res.json({
+           success: true
+       });
+   });
+});
 
 //获取系统里面前10个课程
 router.get('/get_first_ten', (req, res) => {
@@ -251,18 +260,6 @@ router.post('/get_full_course', redirectLogin, (req, res) => {
             err_message: '参数错误'
         })
     })
-});
-
-
-//登出
-router.get('/sign_out', (req, res) => {
-    //删除session
-    req.session.destroy(() => {
-       res.clearCookie('userId', {});
-       res.json({
-           success: true
-       });
-   });
 });
 
 //获取每个知识点的题目信息

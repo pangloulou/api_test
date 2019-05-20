@@ -204,11 +204,6 @@ router.post('/answer_question', redirectLogin, (req, res) => {
 router.post('/add_tag', redirectLogin, (req, res) => {
     const { userId } = req.session;
     const  tagData  = req.body;
-    // var tagData = {
-    //     questionId: 1,
-    //     tagInfo: '太简单了',
-    //     tagData: new Date()
-    // };
     Tag.create({
         t_info: tagData.tagInfo,
         t_data: tagData.tagDate,
@@ -228,8 +223,11 @@ router.post('/add_tag', redirectLogin, (req, res) => {
 });
 
 //返回该学生所有的答题信息
+//选了哪些课，做了哪些题，做题情况如何
+//课程名
 router.get('/answer_logs', redirectLogin, (req, res) => {
-    const { userId } = req.session;
+    // const { userId } = req.session;
+    const userId = 1;
     Student.findOne({
         where: {
             s_id: userId

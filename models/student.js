@@ -10,7 +10,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     s_name: {
       type: DataTypes.STRING(255),
-      allowNull: false
+      allowNull: false,
+      unique: true
     },
     s_desc: {
       type: DataTypes.STRING(255),
