@@ -128,7 +128,6 @@ Question.belongsToMany(Student, {
     otherKey: 's_id'
 });
 
-//课程-答题信息 1-m
 
 
 module.exports = models;

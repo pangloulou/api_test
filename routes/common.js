@@ -247,7 +247,7 @@ router.post('/get_full_course', redirectLogin, (req, res) => {
             attributes: ['t_id','t_name','t_desc']
         }]
     }).then(c => {
-        let result = JSON.stringify(c).replace(/Points|Questions|Options/g, 'children');//JSON字符串
+        let result = JSON.stringify(c).replace(/Points|Questions/g, 'children');//JSON字符串
         let result2 = JSON.parse(result.replace(/c_name|k_info|q_info|o_info/g, 'info'));
         res.json({
             success: true,

@@ -197,7 +197,7 @@ router.get('/get_courses', redirectLogin, (req, res) => {
             }]
         }]
     }).then(t => {
-        let result = JSON.stringify(t).replace(/Points|Questions|Options/g, 'children');//JSON字符串
+        let result = JSON.stringify(t).replace(/Points|Questions/g, 'children');//JSON字符串
         let result2 = JSON.parse(result.replace(/c_name|k_info|q_info|o_info/g, 'info'));
         res.json({
             success: true,
@@ -268,9 +268,9 @@ router.get(('/get_student'), redirectLogin, (req, res) => {
 
 //查看老师名下所有学生答题情况 老师->课程->学生->答题
 //课程名、学生名、答题耗时、答题日期、选课时间、题目描述、选项详情、学生选项
-router.get('/student_logs', redirectLogin,(req, res) => {
-    const { userId } = req.session;
-    // const userId = 1;
+router.get('/student_logs', (req, res) => {
+    // const { userId } = req.session;
+    const userId = 1;
     Teacher.findOne({
         where: {
             t_id: userId
